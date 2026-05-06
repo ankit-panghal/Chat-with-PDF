@@ -4,3 +4,5 @@
 my_model_cache/
 
 my_vector_db/
+
+__pycache__/
