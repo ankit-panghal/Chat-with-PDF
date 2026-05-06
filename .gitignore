@@ -1,0 +1,6 @@
+
+.env
+
+my_model_cache/
+
+my_vector_db/
