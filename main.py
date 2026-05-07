@@ -10,12 +10,12 @@ load_dotenv()
 
 app = FastAPI()
 
-llm = ChatGoogleGenerativeAI(model='gemini-3-flash-preview',api_key = os.getenv("API_KEY"))
+model = ChatGoogleGenerativeAI(model='gemini-3-flash-preview',api_key = os.getenv("API_KEY"))
 
 system_prompt = (
     "You are a helpful assistant. "
     "Your goal is to extract and list EVERY data mentioned in the provided context. "
-    "Break the line when there in '\n\n' instead of writing it. Make Pointers to understand the output"
+    "Make Pointers to understand the output"
     "\n\n"
     "Context:\n{context}"
 )
@@ -32,17 +32,18 @@ def main():
 upload_dir = './uploads'
 
 # Create the RAG chain once
-combine_docs_chain = create_stuff_documents_chain(llm,prompt)
+combine_docs_chain = create_stuff_documents_chain(model,prompt)
 
 @app.post('/chat-with-pdf')
 def chat(user_input : str,file: UploadFile = File(...)):
- # 1. Save the file locally so PyPDFLoader can read it
  file_path = os.path.join(upload_dir, str(file.filename))
+ # 1. Save the file locally so PyPDFLoader can read it
  with open(file_path,"wb") as buffer:
     shutil.copyfileobj(file.file,buffer)
 
  result = retrieval.retrievalData(user_input,file_path)
 #  print(result)
+# Does -> Variable Filling(ChatPromptTemplate), Formatting(Doc objs in result -> one giant string), API Call(bundles prompt -> AI Model), Response
  response = combine_docs_chain.invoke({
   "input" : user_input,
   "context" : result
